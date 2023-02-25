@@ -5,6 +5,8 @@ import { signIn, signOut, useSession } from "next-auth/react";
 
 import { api } from "~/utils/api";
 import { Header } from "~/components/Header";
+import { Topic } from "@prisma/client";
+import { useState } from "react";
 
 const Home: NextPage = () => {
   const hello = api.example.hello.useQuery({ text: "from tRPC" });
@@ -28,16 +30,21 @@ export default Home;
 
 const Content: React.FC = () => {
   const { data: sessionData } = useSession();
-
+  const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const { data: topics, refetch: refetchTopics } = api.topic.getAll.useQuery(
     undefined,
-    { enabled: sessionData?.user !== undefined }
+    {
+      enabled: sessionData?.user !== undefined,
+      onSuccess: (data) => {
+        setSelectedTopic(selectedTopic ?? data[0] ?? null);
+      },
+    }
   );
 
   const createTopic = api.topic.create.useMutation({
-    onSuccess: ()=>{
+    onSuccess: () => {
       void refetchTopics();
-    }
+    },
   });
 
   return (
@@ -50,6 +57,7 @@ const Content: React.FC = () => {
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
+                  setSelectedTopic(topic);
                 }}
               >
                 {topic.title}
