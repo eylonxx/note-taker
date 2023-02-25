@@ -5,8 +5,9 @@ import { signIn, signOut, useSession } from "next-auth/react";
 
 import { api } from "~/utils/api";
 import { Header } from "~/components/Header";
-import { Topic } from "@prisma/client";
+import { type Topic } from "@prisma/client";
 import { useState } from "react";
+import { NoteEditor } from "~/components/NoteEditor";
 
 const Home: NextPage = () => {
   const hello = api.example.hello.useQuery({ text: "from tRPC" });
@@ -31,6 +32,7 @@ export default Home;
 const Content: React.FC = () => {
   const { data: sessionData } = useSession();
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
+
   const { data: topics, refetch: refetchTopics } = api.topic.getAll.useQuery(
     undefined,
     {
@@ -40,6 +42,19 @@ const Content: React.FC = () => {
       },
     }
   );
+
+  const { data: notes, refetch: refetchNotes } = api.note.getAll.useQuery(
+    { topicId: selectedTopic?.id ?? "" },
+    {
+      enabled: sessionData?.user !== undefined,
+    }
+  );
+
+  const createNote = api.note.create.useMutation({
+    onSuccess: () => {
+      void refetchNotes();
+    },
+  });
 
   const createTopic = api.topic.create.useMutation({
     onSuccess: () => {
@@ -80,7 +95,17 @@ const Content: React.FC = () => {
           }}
         />
       </div>
-      <div className="col-span-3"></div>
+      <div className="col-span-3">
+        <NoteEditor
+          onSave={({ title, content }) => {
+            void createNote.mutate({
+              title,
+              content,
+              topicId: selectedTopic?.id ?? "",
+            });
+          }}
+        />
+      </div>
     </div>
   );
 };
