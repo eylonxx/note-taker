@@ -2,6 +2,7 @@ import { useState } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
+import { useSession } from "next-auth/react";
 
 export const NoteEditor = ({
   onSave,
@@ -10,6 +11,7 @@ export const NoteEditor = ({
 }) => {
   const [code, setCode] = useState<string>("");
   const [title, setTitle] = useState<string>("");
+  const { data: sessionData } = useSession();
 
   return (
     <div className="card mt-5 border border-gray-200 bg-base-100 shadow-xl">

@@ -11,8 +11,6 @@ import { NoteEditor } from "~/components/NoteEditor";
 import { NoteCard } from "~/components/NoteCard";
 
 const Home: NextPage = () => {
-  const hello = api.example.hello.useQuery({ text: "from tRPC" });
-
   return (
     <>
       <Head>
@@ -76,6 +74,7 @@ const Content: React.FC = () => {
           {topics?.map((topic) => (
             <li key={topic.id}>
               <a
+                className={selectedTopic === topic ? "active" : ""}
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
@@ -115,6 +114,9 @@ const Content: React.FC = () => {
         </div>
         <NoteEditor
           onSave={({ title, content }) => {
+            if (!sessionData?.user) {
+              void signIn();
+            }
             void createNote.mutate({
               title,
               content,
